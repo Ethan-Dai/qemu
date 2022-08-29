@@ -11,5 +11,7 @@ qemu-system-aarch64 \
 	-cpu cortex-a57 \
 	-smp 4 \
 	-kernel $KERNEL_DIR/arch/arm64/boot/Image \
-	-initrd rootfs.cpio.gz \
-	--append "console=ttyAMA0 rdinit=/linuxrc irqchip.gicv3_pseudo_nmi=1 crashkernel=128M"
+	-initrd rootfs.cpio \
+	--append "console=ttyAMA0 rdinit=/linuxrc"
+
+#	-initrd rootfs.cpio.gz \
