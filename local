@@ -1,18 +1,16 @@
 #!/bin/sh
 
-KERNEL_DIR=~/workspace/kernels/out/gki
-
 qemu-system-aarch64 \
 	-fsdev local,security_model=passthrough,id=fsdev0,path=share \
 	-device virtio-9p-pci,fsdev=fsdev0,mount_tag=hostshare \
 	-machine virt,virtualization=true,gic-version=3 \
 	-nographic \
-	-m size=1024M \
+	-m size=1500M \
 	-cpu cortex-a57 \
 	-smp 4 \
 	-dtb qume.dtb \
 	-initrd ~/workspace/rootfs.cpio.gz \
-	-kernel $KERNEL_DIR/arch/arm64/boot/Image \
+	-kernel Image \
 	--append "console=ttyAMA0 rdinit=/linuxrc"
 
 #	-initrd rootfs.cpio.gz \
