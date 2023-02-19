@@ -8,7 +8,7 @@ qemu-system-aarch64 \
 	-m size=1500M \
 	-cpu cortex-a57 \
 	-smp 4 \
-	-dtb qume.dtb \
+	-dtb qemu.dtb \
 	-initrd ~/workspace/rootfs.cpio.gz \
 	-kernel Image \
 	--append "console=ttyAMA0 rdinit=/linuxrc"

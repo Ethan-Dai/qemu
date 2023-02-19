@@ -359,6 +359,7 @@
 			reg = <0x00 0x8080000 0x00 0x20000>;
 			msi-controller;
 			compatible = "arm,gic-v3-its";
+			dma-noncoherent;
 		};
 	};
 
