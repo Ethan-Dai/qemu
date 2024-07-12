@@ -1,0 +1,6 @@
+#!/bin/sh
+
+qemu-system-aarch64 \
+    -nographic -machine virt,secure=on \
+    -cpu cortex-a53 \
+    -bios bl1.bin \

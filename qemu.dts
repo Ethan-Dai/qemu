@@ -25,9 +25,9 @@
 		#size-cells = <2>;
 		ranges;
 
-		ci_mem: ci_mem@40200000{
-			compatible = "arm,slc-mem";
-			reg = <0x0 0x43000000 0x0 0xc00000>;
+		slc-mem@8d4000000 {
+			compatible = "smsi,slc-mem";
+			reg = <0x0 0x43000000 0x0 0x1000000>; //16M
 		};
 
 		/* global autoconfigured region for contiguous allocations */
@@ -40,10 +40,15 @@
 
 	};
 
-	ci700@60000000 {
-		compatible = "arm,ci-700";
+	si700@60000000 {
+		compatible = "smsi,sys-interconnect";
 		reg = <0x00 0x60000000 0x00 0x10000000>;
-		memory-region = <&ci_mem>;
+
+		interrupts = <0x00 215 0x1>,	//PPU
+			     <0x00 214 0x1>,	//PMU
+			     <0x00 216 0x1>,	//ERRNS
+			     <0x00 218 0x1>,	//FAULTNS
+			     <0x00 220 0x1>;	//MPAMERRNS
 	};
 
 	platform@c000000 {

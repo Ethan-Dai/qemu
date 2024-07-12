@@ -1,0 +1,5 @@
+#!/bin/sh
+
+IMG=/home/ethan/workspace/kernel-dev/chip-tester/chip-tester.axf
+
+qemu-system-riscv64 -nographic -machine virt -smp 4 -bios $IMG $@
