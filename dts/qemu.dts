@@ -1,7 +1,12 @@
 /dts-v1/;
 
+#include "reserved-memory.dtsi"
+#include "ci700.dtsi"
+#include "demo-regulators.dtsi"
+
 / {
 	interrupt-parent = <0x8005>;
+	model = "linux,dummy-virt";
 	#size-cells = <0x02>;
 	#address-cells = <0x02>;
 	compatible = "linux,dummy-virt";
@@ -16,42 +21,11 @@
 	};
 
 	memory@40000000 {
-		reg = <0x00 0x40000000 0x00 0x5dc00000>;
+		reg = <0x00 0x40000000 0x00 0x20000000>;
 		device_type = "memory";
 	};
 
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-
-		slc-mem@8d4000000 {
-			compatible = "smsi,slc-mem";
-			reg = <0x0 0x43000000 0x0 0x1000000>; //16M
-		};
-
-		/* global autoconfigured region for contiguous allocations */
-		linux,cma {
-			compatible = "shared-dma-pool";
-			reusable;
-			size = <0x00000000 0x08000000>;
-			linux,cma-default;
-		};
-
-	};
-
-	si700@60000000 {
-		compatible = "smsi,sys-interconnect";
-		reg = <0x00 0x60000000 0x00 0x10000000>;
-
-		interrupts = <0x00 215 0x1>,	//PPU
-			     <0x00 214 0x1>,	//PMU
-			     <0x00 216 0x1>,	//ERRNS
-			     <0x00 218 0x1>,	//FAULTNS
-			     <0x00 220 0x1>;	//MPAMERRNS
-	};
-
-	platform@c000000 {
+	platform-bus@c000000 {
 		interrupt-parent = <0x8005>;
 		ranges = <0x00 0x00 0xc000000 0x2000000>;
 		#address-cells = <0x01>;
@@ -316,7 +290,7 @@
 		#interrupt-cells = <0x01>;
 		ranges = <0x1000000 0x00 0x00 0x00 0x3eff0000 0x00 0x10000 0x2000000 0x00 0x10000000 0x00 0x10000000 0x00 0x2eff0000 0x3000000 0x80 0x00 0x80 0x00 0x80 0x00>;
 		reg = <0x40 0x10000000 0x00 0x10000000>;
-		msi-parent = <0x8006>;
+		msi-map = <0x00 0x8006 0x00 0x10000>;
 		dma-coherent;
 		bus-range = <0x00 0xff>;
 		linux,pci-domain = <0x00>;
@@ -362,9 +336,9 @@
 		its@8080000 {
 			phandle = <0x8006>;
 			reg = <0x00 0x8080000 0x00 0x20000>;
+			#msi-cells = <0x01>;
 			msi-controller;
 			compatible = "arm,gic-v3-its";
-			dma-noncoherent;
 		};
 	};
 
@@ -451,11 +425,8 @@
 	};
 
 	chosen {
-		linux,initrd-end = <0x4811bc0e>;
-		linux,initrd-start = <0x48000000>;
-		bootargs = "console=ttyAMA0 rdinit=/linuxrc";
 		stdout-path = "/pl011@9000000";
-		rng-seed = <0x4c059ec8 0xf2477734 0x7d84ea5 0xea5ba9c5 0x5631e0f1 0x4b099cba 0xb1e9030c 0x2166710f>;
-		kaslr-seed = <0xdc003e6a 0xcb4e4b89>;
+		rng-seed = <0xf96e0dfb 0xda81b34f 0x7242bb45 0x69a62fa0 0xf8401d92 0xfd510961 0xf5d2dd52 0x37593a4a>;
+		kaslr-seed = <0xd33afb41 0x811b9831>;
 	};
 };

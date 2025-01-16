@@ -1,0 +1,30 @@
+
+/ {
+	demo-pmic_c {
+		compatible = "demo-chip_a-regulators";
+		
+		VDD_A: ldo0 {
+			regulator-max-microvolt = <000000>;
+			regulator-min-microvolt = <100000>;
+		};
+
+		VDD_B: ldo1 {
+			regulator-max-microvolt = <100000>;
+			regulator-min-microvolt = <200000>;
+		};
+	};
+
+	demo-pmic_b {
+		compatible = "demo-chip_b-regulators";
+		
+		VDD_C: ldo0 {
+			regulator-max-microvolt = <200000>;
+			regulator-min-microvolt = <300000>;
+		};
+
+		VDD_D: ldo1 {
+			regulator-max-microvolt = <300000>;
+			regulator-min-microvolt = <400000>;
+		};
+	};
+};

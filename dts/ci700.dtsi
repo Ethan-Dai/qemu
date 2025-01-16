@@ -1,0 +1,13 @@
+
+/ {
+	si700@60000000 {
+		compatible = "smsi,sys-interconnect";
+		reg = <0x00 0x60000000 0x00 0x10000000>;
+
+		interrupts = <0x00 215 0x1>,	//PPU
+			     <0x00 214 0x1>,	//PMU
+			     <0x00 216 0x1>,	//ERRNS
+			     <0x00 218 0x1>,	//FAULTNS
+			     <0x00 220 0x1>;	//MPAMERRNS
+	};
+};
