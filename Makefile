@@ -22,14 +22,14 @@ endif
 run: $(ARCH)
 
 aarch64:
-	qemu-system-aarch64 $(ARGS) \
+	@qemu-system-aarch64 $(ARGS) \
 	-dtb qemu.dtb \
 	-initrd $(ROOTFS) \
 	-kernel $(KERNEL_DIR)/arch/arm64/boot/Image \
 	-append "console=ttyAMA0 rdinit=/linuxrc"
 
 riscv:
-	qemu-system-riscv64 $(ARGS) \
+	@qemu-system-riscv64 $(ARGS) \
 	-initrd $(ROOTFS) \
 	-kernel $(KERNEL_DIR)/arch/riscv/boot/Image \
 	-append "rdinit=/linuxrc console=ttyS0"
