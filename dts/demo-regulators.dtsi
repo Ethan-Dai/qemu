@@ -4,7 +4,7 @@
 		compatible = "demo-chip_a-regulators";
 		
 		VDD_A: VDD_A {
-			regulator-min-microvolt = <0000000>;
+			regulator-min-microvolt = <100000>;
 			regulator-max-microvolt = <3000000>;
 		};
 
