@@ -3,28 +3,34 @@
 	demo-pmic_a {
 		compatible = "demo-chip_a-regulators";
 		
-		VDD_A: VDD_A {
+		vdd_a: VDD_A {
 			regulator-min-microvolt = <100000>;
 			regulator-max-microvolt = <3000000>;
 		};
 
-		VDD_B: VDD_B {
+		vdd_b: VDD_B {
 			regulator-min-microvolt = <100000>;
-			regulator-max-microvolt = <200000>;
+			regulator-max-microvolt = <2000000>;
 		};
 	};
 
 	demo-pmic_b {
 		compatible = "demo-chip_b-regulators";
 		
-		VDD_C: VDD_C {
-			regulator-min-microvolt = <200000>;
-			regulator-max-microvolt = <300000>;
+		vdd_c: VDD_C {
+			regulator-min-microvolt = <500000>;
+			regulator-max-microvolt = <900000>;
+			regulator-coupled-with = <&vdd_d>;
+			regulator-coupled-max-spread = <100000>;
+			regulator-always-on;
 		};
 
-		VDD_D: VDD_D {
-			regulator-min-microvolt = <300000>;
-			regulator-max-microvolt = <400000>;
+		vdd_d: VDD_D {
+			regulator-min-microvolt = <500000>;
+			regulator-max-microvolt = <900000>;
+			regulator-coupled-with = <&vdd_c>;
+			regulator-coupled-max-spread = <100000>;
+			regulator-always-on;
 		};
 	};
 };
