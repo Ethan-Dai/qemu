@@ -4,18 +4,26 @@ QEMU_ARGS	+= -device virtio-9p-pci,fsdev=fsdev0,mount_tag=hostshare
 QEMU_ARGS	+= -nographic
 QEMU_ARGS	+= -m size=256M
 QEMU_ARGS	+= -cpu max
-QEMU_ARGS	+= -smp 4
+QEMU_ARGS	+= -smp 1
 QEMU_ARGS	+= -machine virt
+
+
+UBOOT_SRC	?= ~/gits/u-boot
+ATF_SRC		?= /home/ethan/gits/arm-trusted-firmware
+ATF_OUT		:= $(ATF_SRC)/build/qemu/debug
 
 ifneq ($(GDB),)
 QEMU_ARGS	+= -S -s
+RUN_QEMU_BAK	:= gnome-terminal --
 RUN_GDB		:= run_gdb
+GDB_ARGS	:= -q --ex 'target remote :1234'
 endif
 
 ifneq ($(BIOS), 0)
 BIOS_BIN	:= bios.bin
 QEMU_ARGS       += -bios $(BIOS_BIN)
 QEMU_ARGS       += -machine secure=on
+GDB_ARGS	+= --ex 'add-symbol-file $(ATF_OUT)/bl31/bl31.elf'
 endif
 
 # kernel boot args
@@ -35,14 +43,10 @@ KBUILD_OUTPUT	?= ~/gits/out/riscv
 ROOTFS		?= ~/gits/busybox/rootfs-riscv.cpio
 endif
 
-UBOOT_SRC	?= ~/gits/u-boot
-ATF_SRC		?= /home/ethan/gits/arm-trusted-firmware
-ATF_OUT		:= $(ATF_SRC)/build/qemu/debug
+run: run_qemu $(RUN_GDB)
 
-run: $(RUN_GDB) $(ARCH)
-
-arm64: $(BIOS_BIN)
-	qemu-system-aarch64 $(QEMU_ARGS) \
+run_qemu: $(BIOS_BIN)
+	$(RUN_QEMU_BAK) qemu-system-aarch64 $(QEMU_ARGS) \
 	-dtb qemu.dtb \
 	-initrd $(ROOTFS) \
 	-kernel $(KBUILD_OUTPUT)/arch/arm64/boot/Image \
@@ -76,4 +80,7 @@ dump_dts:
 	rm dump.dtb
 
 run_gdb:
-	gnome-terminal -- gdb-multiarch --ix 'target remote :1234' $(KBUILD_OUTPUT)/vmlinux
+	gdb-multiarch $(GDB_ARGS) $(KBUILD_OUTPUT)/vmlinux
+
+clean:
+	rm $(BIOS_BIN) $(ATF_OUT)/fip.bin

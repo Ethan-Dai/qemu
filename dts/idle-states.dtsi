@@ -3,38 +3,43 @@
 
 	cpus {
 		cpu@0 {
-			cpu-idle-states = <&CORE_PD &CLUSTER_PD>;
+			cpu-idle-states = <&CORE_RET &CORE_PD &CLUSTER_PD>;
 		};
 
 		cpu@1 {
-			cpu-idle-states = <&CORE_PD &CLUSTER_PD>;
+			cpu-idle-states = <&CORE_RET &CORE_PD &CLUSTER_PD>;
 		};
 
 		cpu@2 {
-			cpu-idle-states = <&CORE_PD &CLUSTER_PD>;
+			cpu-idle-states = <&CORE_RET &CORE_PD &CLUSTER_PD>;
 		};
 
 		cpu@3 {
-			cpu-idle-states = <&CORE_PD &CLUSTER_PD>;
+			cpu-idle-states = <&CORE_RET &CORE_PD &CLUSTER_PD>;
 		};
 
 		idle-states {
 			entry-method = "arm,psci";
 
-			CORE_PD: core_pd {
+			CORE_RET: core_ret {
 				compatible = "arm,idle-state";
-				/* CPU Retention (C2D), L2 Active */
-				arm,psci-suspend-param = <0x0010000>;
+				arm,psci-suspend-param = <0x0000001>;
 				wakeup-latency-us = <200>;
 				min-residency-us = <1000>;
 			};
 
-			CLUSTER_PD: cluster_pd {
+			CORE_PD: core_pd {
 				compatible = "arm,idle-state";
-				/* CPU Retention (C2D), L2 Active */
-				arm,psci-suspend-param = <0x1010000>;
+				arm,psci-suspend-param = <0x0010002>;
 				wakeup-latency-us = <400>;
 				min-residency-us = <2000>;
+			};
+
+			CLUSTER_PD: cluster_pd {
+				compatible = "arm,idle-state";
+				arm,psci-suspend-param = <0x1010022>;
+				wakeup-latency-us = <400>;
+				min-residency-us = <4000>;
 			};
 
 		};

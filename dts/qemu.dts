@@ -3,7 +3,7 @@
 #include "reserved-memory.dtsi"
 #include "ci700.dtsi"
 #include "demo-regulators.dtsi"
-//#include "idle-states.dtsi"
+#include "idle-states.dtsi"
 
 / {
 	interrupt-parent = <0x8005>;
