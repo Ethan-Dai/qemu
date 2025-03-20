@@ -12,16 +12,22 @@ QEMU_ARGS	+= -S -s
 RUN_GDB		:= run_gdb
 endif
 
+ifneq ($(BIOS), 0)
+BIOS_BIN	:= bios.bin
+QEMU_ARGS       += -bios $(BIOS_BIN)
+QEMU_ARGS       += -machine secure=on
+endif
+
 # kernel boot args
-BOOT_ARGS	+= rdinit=/linuxrc
-BOOT_ARGS	+= trace_event="regulator_set_voltage"
+KERNEL_ARGS	+= rdinit=/linuxrc
+#KERNEL_ARGS	+= trace_event="regulator_set_voltage"
 
 ifeq ($(ARCH), arm64)
 KBUILD_OUTPUT	?= ~/gits/out/gki/
 ROOTFS		?= ~/workspace/rootfs.cpio.gz
 
-QEMU_ARGS	+= -machine gic-version=3,mte=on
-BOOT_ARGS	+= console=ttyAMA0
+QEMU_ARGS	+= -machine gic-version=3
+KERNEL_ARGS	+= console=ttyAMA0
 endif
 
 ifeq ($(ARCH), riscv)
@@ -35,19 +41,19 @@ ATF_OUT		:= $(ATF_SRC)/build/qemu/debug
 
 run: $(RUN_GDB) $(ARCH)
 
-arm64:
+arm64: $(BIOS_BIN)
 	qemu-system-aarch64 $(QEMU_ARGS) \
 	-dtb qemu.dtb \
 	-initrd $(ROOTFS) \
 	-kernel $(KBUILD_OUTPUT)/arch/arm64/boot/Image \
-	-append "$(BOOT_ARGS)"
+	-append "$(KERNEL_ARGS)"
 
-bl.bin: $(ATF_OUT)/fip.bin $(ATF_OUT)/bl1.bin
-	dd if=$(ATF_OUT)/bl1.bin of=$@ bs=4096
-	dd if=$(ATF_OUT)/fip.bin of=$@ seek=64 bs=4096
+$(BIOS_BIN): $(ATF_OUT)/fip.bin $(ATF_OUT)/bl1.bin
+	dd if=$(ATF_OUT)/bl1.bin of=$@ bs=4096 conv=notrunc
+	dd if=$(ATF_OUT)/fip.bin of=$@ seek=64 bs=4096 conv=notrunc
 
 $(ATF_OUT)/fip.bin $(ATF_OUT)/bl1.bin: $(UBOOT_SRC)/u-boot.bin $(ATF_SRC)
-	make CROSS_COMPILE=aarch64-linux-gnu- PLAT=qemu DEBUG=1 BL33=$(UBOOT_SRC)/u-boot.bin all fip -j16 -C $(ATF_SRC)
+	$(MAKE) CROSS_COMPILE=aarch64-linux-gnu- PLAT=qemu DEBUG=1 BL2_AT_EL3=1 BL33=$(UBOOT_SRC)/u-boot.bin all fip -j16 -C $(ATF_SRC)
 
 $(UBOOT_SRC)/u-boot.bin: $(UBOOT_SRC)
 	$(MAKE) qemu_arm64_defconfig -C $(UBOOT_SRC)
@@ -57,7 +63,7 @@ riscv:
 	qemu-system-riscv64 $(QEMU_ARGS) \
 	-initrd $(ROOTFS) \
 	-kernel $(KBUILD_OUTPUT)/arch/riscv/boot/Image \
-	-append "$(BOOT_ARGS)"
+	-append "$(KERNEL_ARGS)"
 
 dtb: dts/qemu.dts
 	cpp -nostdinc -undef -I./dts -D__DTS__ -x assembler-with-cpp -o qemu.dts.tmp $<
