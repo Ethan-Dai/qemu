@@ -38,7 +38,7 @@
 			CLUSTER_PD: cluster_pd {
 				compatible = "arm,idle-state";
 				arm,psci-suspend-param = <0x1010022>;
-				wakeup-latency-us = <400>;
+				wakeup-latency-us = <800>;
 				min-residency-us = <4000>;
 			};
 

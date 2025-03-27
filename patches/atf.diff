@@ -1,0 +1,56 @@
+diff --git a/plat/qemu/common/qemu_pm.c b/plat/qemu/common/qemu_pm.c
+index 7893c8164..51d69e3f3 100644
+--- a/plat/qemu/common/qemu_pm.c
++++ b/plat/qemu/common/qemu_pm.c
+@@ -157,7 +157,15 @@ qemu_pwr_domain_pwr_down_wfi(const psci_power_state_t *target_state)
+  ******************************************************************************/
+ void qemu_pwr_domain_suspend(const psci_power_state_t *target_state)
+ {
+-	assert(0);
++	uint64_t *hold_base = (uint64_t *)PLAT_QEMU_HOLD_BASE;
++
++	while (read_isr_el1() == 0U)
++		wfi();
++
++	/* Simulate the mailbox that triggers the CPU to power on by RPM */
++	hold_base[plat_my_core_pos()] = PLAT_QEMU_HOLD_STATE_GO;
++
++	// assert(0);
+ }
+ 
+ /*******************************************************************************
+@@ -180,7 +188,7 @@ void qemu_pwr_domain_on_finish(const psci_power_state_t *target_state)
+  ******************************************************************************/
+ void qemu_pwr_domain_suspend_finish(const psci_power_state_t *target_state)
+ {
+-	assert(0);
++	// assert(0);
+ }
+ 
+ /*******************************************************************************
+diff --git a/plat/qemu/qemu/include/platform_def.h b/plat/qemu/qemu/include/platform_def.h
+index 7dd7dcda5..e12621bae 100644
+--- a/plat/qemu/qemu/include/platform_def.h
++++ b/plat/qemu/qemu/include/platform_def.h
+@@ -195,7 +195,7 @@
+ #define FW_NS_HANDOFF_BASE		(NS_IMAGE_OFFSET - FW_HANDOFF_SIZE)
+ #endif
+ 
+-#define NS_IMAGE_OFFSET			(NS_DRAM0_BASE + 0x20000000)
++#define NS_IMAGE_OFFSET			(NS_DRAM0_BASE + 0x01000000)
+ #define NS_IMAGE_MAX_SIZE		(NS_DRAM0_SIZE - 0x20000000)
+ 
+ #define PLAT_PHY_ADDR_SPACE_SIZE	(1ULL << 32)
+diff --git a/plat/qemu/qemu/platform.mk b/plat/qemu/qemu/platform.mk
+index bd75abc55..5777fd5dd 100644
+--- a/plat/qemu/qemu/platform.mk
++++ b/plat/qemu/qemu/platform.mk
+@@ -13,7 +13,7 @@ ENABLE_STACK_PROTECTOR	 := 0
+ include plat/qemu/common/common.mk
+ 
+ # Use the GICv2 driver on QEMU by default
+-QEMU_USE_GIC_DRIVER	:= QEMU_GICV2
++QEMU_USE_GIC_DRIVER	:= QEMU_GICV3
+ 
+ ifeq (${ARM_ARCH_MAJOR},7)
+ # ARMv7 Qemu support in trusted firmware expects the Cortex-A15 model.

@@ -27,7 +27,7 @@ GDB_ARGS	+= --ex 'add-symbol-file $(ATF_OUT)/bl31/bl31.elf'
 endif
 
 # kernel boot args
-KERNEL_ARGS	+= rdinit=/linuxrc
+KERNEL_ARGS	+= rdinit=/linuxrc nokaslr maxcpus=1
 #KERNEL_ARGS	+= trace_event="regulator_set_voltage"
 
 ifeq ($(ARCH), arm64)
@@ -83,4 +83,4 @@ run_gdb:
 	gdb-multiarch $(GDB_ARGS) $(KBUILD_OUTPUT)/vmlinux
 
 clean:
-	rm $(BIOS_BIN) $(ATF_OUT)/fip.bin
+	rm $(BIOS_BIN) $(ATF_OUT)/fip.bin -f
