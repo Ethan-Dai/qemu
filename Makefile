@@ -1,16 +1,20 @@
 ARCH		?= arm64
-QEMU_ARGS	+= -fsdev local,security_model=passthrough,id=fsdev0,path=share
-QEMU_ARGS	+= -device virtio-9p-pci,fsdev=fsdev0,mount_tag=hostshare
-QEMU_ARGS	+= -nographic
-QEMU_ARGS	+= -m size=256M
-QEMU_ARGS	+= -cpu max
-QEMU_ARGS	+= -smp 1
-QEMU_ARGS	+= -machine virt
+BIOS		?= 1
 
+CROSS_COMPILE	:= aarch64-linux-gnu-
 
 UBOOT_SRC	?= ~/gits/u-boot
 ATF_SRC		?= /home/ethan/gits/arm-trusted-firmware
-ATF_OUT		:= $(ATF_SRC)/build/qemu/debug
+ATF_OUT		?= $(ATF_SRC)/build/qemu/debug
+KIMAGE		?= $(KBUILD_OUTPUT)/arch/arm64/boot/Image
+
+QEMU_ARGS	+= -fsdev local,security_model=passthrough,id=fsdev0,path=share
+QEMU_ARGS	+= -device virtio-9p-pci,fsdev=fsdev0,mount_tag=hostshare
+QEMU_ARGS	+= -nographic
+QEMU_ARGS	+= -m size=1024M
+QEMU_ARGS	+= -cpu max,sve=off
+QEMU_ARGS	+= -smp 4
+QEMU_ARGS	+= -machine virt,mte=on
 
 ifneq ($(GDB),)
 QEMU_ARGS	+= -S -s
@@ -26,8 +30,12 @@ QEMU_ARGS       += -machine secure=on
 GDB_ARGS	+= --ex 'add-symbol-file $(ATF_OUT)/bl31/bl31.elf'
 endif
 
+ifneq ($(DTB), 0)
+QEMU_ARGS	+= -dtb qemu.dtb
+endif
+
 # kernel boot args
-KERNEL_ARGS	+= rdinit=/linuxrc nokaslr maxcpus=1
+KERNEL_ARGS	+= rdinit=/linuxrc nokaslr
 #KERNEL_ARGS	+= trace_event="regulator_set_voltage"
 
 ifeq ($(ARCH), arm64)
@@ -35,6 +43,7 @@ KBUILD_OUTPUT	?= ~/gits/out/gki/
 ROOTFS		?= ~/workspace/rootfs.cpio.gz
 
 QEMU_ARGS	+= -machine gic-version=3
+QEMU_ARGS	+= -machine iommu=smmuv3
 KERNEL_ARGS	+= console=ttyAMA0
 endif
 
@@ -43,13 +52,16 @@ KBUILD_OUTPUT	?= ~/gits/out/riscv
 ROOTFS		?= ~/gits/busybox/rootfs-riscv.cpio
 endif
 
+ifeq ($(QEMU_LOG), 1)
+QEMU_ARGS	+= -d cpu -D debug.log
+endif
+
 run: run_qemu $(RUN_GDB)
 
 run_qemu: $(BIOS_BIN)
 	$(RUN_QEMU_BAK) qemu-system-aarch64 $(QEMU_ARGS) \
-	-dtb qemu.dtb \
 	-initrd $(ROOTFS) \
-	-kernel $(KBUILD_OUTPUT)/arch/arm64/boot/Image \
+	-kernel $(KIMAGE) \
 	-append "$(KERNEL_ARGS)"
 
 $(BIOS_BIN): $(ATF_OUT)/fip.bin $(ATF_OUT)/bl1.bin
@@ -57,11 +69,11 @@ $(BIOS_BIN): $(ATF_OUT)/fip.bin $(ATF_OUT)/bl1.bin
 	dd if=$(ATF_OUT)/fip.bin of=$@ seek=64 bs=4096 conv=notrunc
 
 $(ATF_OUT)/fip.bin $(ATF_OUT)/bl1.bin: $(UBOOT_SRC)/u-boot.bin $(ATF_SRC)
-	$(MAKE) CROSS_COMPILE=aarch64-linux-gnu- PLAT=qemu DEBUG=1 BL2_AT_EL3=1 BL33=$(UBOOT_SRC)/u-boot.bin all fip -j16 -C $(ATF_SRC)
+	$(MAKE) CROSS_COMPILE=$(CROSS_COMPILE) PLAT=qemu DEBUG=1 ENABLE_FEAT_MTE2=1 BL2_AT_EL3=1 BL33=$(UBOOT_SRC)/u-boot.bin all fip -j16 -C $(ATF_SRC)
 
 $(UBOOT_SRC)/u-boot.bin: $(UBOOT_SRC)
 	$(MAKE) qemu_arm64_defconfig -C $(UBOOT_SRC)
-	$(MAKE) CROSS_COMPILE=aarch64-linux-gnu- -j16 -C $(UBOOT_SRC)
+	$(MAKE) CROSS_COMPILE=$(CROSS_COMPILE) -j16 -C $(UBOOT_SRC)
 
 riscv:
 	qemu-system-riscv64 $(QEMU_ARGS) \

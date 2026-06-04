@@ -4,9 +4,10 @@
 		#size-cells = <2>;
 		ranges;
 
-		slc-mem@8d4000000 {
-			compatible = "smsi,slc-mem";
+		mrl-rgn@8d4000000 {
+			compatible = "smsi,mrl-region";
 			reg = <0x0 0x43000000 0x0 0x1000000>; //16M
+			no-map;
 		};
 
 		/* global autoconfigured region for contiguous allocations */

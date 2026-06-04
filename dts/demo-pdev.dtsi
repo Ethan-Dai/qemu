@@ -1,0 +1,8 @@
+
+/ {
+	demo-dma {
+		dma-coherent;
+		compatible = "demo, platform-dev";
+		iommus = <&smmu 0x66>;
+	};
+};
