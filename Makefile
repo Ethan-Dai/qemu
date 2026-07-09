@@ -1,15 +1,19 @@
 ARCH		?= arm64
 BIOS		?= 1
 
-CC	:= aarch64-none-elf-
+#CC		:= aarch64-none-elf-
+CC		:= aarch64-linux-gnu-
 
 UBOOT_SRC	?= $(GDIR)/u-boot
 ATF_SRC		?= $(GDIR)/arm-trusted-firmware
 ATF_OUT		?= $(ATF_SRC)/build/qemu/debug
 KIMAGE		?= $(KBUILD_OUTPUT)/arch/arm64/boot/Image
 
-OPENSSL_PREFIX	:= $(shell brew --prefix openssl 2>/dev/null)
-UBOOT_HOST_FLAGS := $(if $(OPENSSL_PREFIX),HOSTCFLAGS="-I$(OPENSSL_PREFIX)/include" HOSTLDFLAGS="-L$(OPENSSL_PREFIX)/lib")
+#OPENSSL_PREFIX	?= /opt/homebrew/opt/openssl
+ifneq ($(OPENSSL_PREFIX),)
+UBOOT_HOST_FLAGS += HOSTCFLAGS="-I$(OPENSSL_PREFIX)/include"
+UBOOT_HOST_FLAGS += HOSTLDFLAGS="-L$(OPENSSL_PREFIX)/lib"
+endif
 
 QEMU_ARGS	+= -fsdev local,security_model=passthrough,id=fsdev0,path=share
 QEMU_ARGS	+= -device virtio-9p-pci,fsdev=fsdev0,mount_tag=hostshare
@@ -19,8 +23,9 @@ QEMU_ARGS	+= -cpu max,sve=off
 QEMU_ARGS	+= -smp 4
 QEMU_ARGS	+= -machine virt,mte=on
 
-ifneq ($(TCP),)
+ifneq ($(DEVRUN),)
 QEMU_ARGS	+= -serial tcp:127.0.0.1:2222,server,nowait
+QEMU_ARGS	+= -monitor none
 endif
 
 ifneq ($(GDB),)
@@ -48,7 +53,7 @@ KERNEL_ARGS	+= rdinit=/linuxrc nokaslr
 
 ifeq ($(ARCH), arm64)
 KBUILD_OUTPUT	?= $(GDIR)/out/gki/
-ROOTFS		?= rootfs.cpio.gz
+ROOTFS_BIN	?= rootfs.cpio.gz
 ROOTFS_DIR	?= rootfs
 
 QEMU_ARGS	+= -machine gic-version=3
@@ -67,11 +72,11 @@ endif
 
 .PHONY: rootfs run
 
-run: rootfs run_qemu
+run: rootfs run_qemu $(RUN_GDB)
 
 run_qemu: $(BIOS_BIN) $(ROOTFS)
 	$(RUN_QEMU_BAK) qemu-system-aarch64 $(QEMU_ARGS) \
-	-initrd $(ROOTFS) \
+	-initrd $(ROOTFS_BIN) \
 	-kernel $(KIMAGE) \
 	-append "$(KERNEL_ARGS)"
 
@@ -93,7 +98,7 @@ riscv:
 	-append "$(KERNEL_ARGS)"
 
 rootfs:
-	cd $(ROOTFS_DIR) && find . | cpio -o -H newc | gzip -9 > $(abspath $(ROOTFS))
+	cd $(ROOTFS_DIR) && find . | cpio -o -H newc | gzip -9 > $(abspath $(ROOTFS_BIN))
 
 dtb: dts/qemu.dts
 	cpp -nostdinc -undef -I./dts -D__DTS__ -x assembler-with-cpp -o qemu.dts.tmp $<

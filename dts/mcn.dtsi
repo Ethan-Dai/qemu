@@ -1,9 +1,14 @@
 #include "reserved-memory.dtsi"
 
 / {
+	pcu: pcu@43980000 {
+		reg = <0x00 0x43980000 0x00 0x1000>;
+	};
+
 	mcn@43000000 {
 		compatible = "qemu,mcn";
-		reg = <0x00 0x43000000 0x00 0x1000000>;
+		reg = <0x00 0x43000000 0x00 0x980000>;
+		pcu = <&pcu>;
 
 		interrupts = <0x00 215 0x1>,	//PPU
 			     <0x00 214 0x1>,	//PMU

@@ -36,11 +36,11 @@ INFO()
 
 mount_debugfs()
 {
-	if [ "$(ls /sys/kernel/debug/)" = "" ]; then
+	if [ "$(ls $DEBUGFS)" = "" ]; then
 		INFO "The debugfs has not been mounted"
-		mount -t debugfs debugfs /sys/kernel/debug
+		mount -t debugfs debugfs $DEBUGFS
 	fi
-	if [ "$(ls /sys/kernel/debug/)" = "" ]; then
+	if [ "$(ls $DEBUGFS)" = "" ]; then
 		INFO "Failed to mount debugfs"
 		SKIP
 	fi
